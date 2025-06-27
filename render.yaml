@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: location-tracker
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app
+    envVars:
+      - key: GOOGLE_MAPS_API_KEY
+        value: AIzaSyDNI_ZWPqvdS6r6gPVO50I4TlYkfkZdXh8
+      - key: SECRET_KEY
+        value: location-tracker-production-secret-2024
+      - key: PORT
+        value: 10000
+  
+  - type: pserv
+    name: location-tracker-db
+    env: postgresql
+    plan: free
+    disk:
+      name: location-tracker-data
+      mountPath: /var/lib/postgresql/data 
