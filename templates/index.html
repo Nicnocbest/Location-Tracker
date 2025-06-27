@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Tạo Link Rút Gọn - Location Tracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Hero Section -->
+            <div class="text-center mb-5">
+                <h1 class="display-4 text-white fw-bold mb-3">
+                    <i class="fas fa-link me-3"></i>Location Tracker
+                </h1>
+                <p class="lead text-white mb-4">
+                    Tạo link rút gọn và theo dõi vị trí người dùng một cách thông minh và bảo mật
+                </p>
+                <div class="d-flex justify-content-center gap-3">
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-shield-alt me-1"></i>Bảo mật cao
+                    </span>
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-chart-line me-1"></i>Phân tích chi tiết
+                    </span>
+                    <span class="badge bg-light text-dark fs-6 px-3 py-2">
+                        <i class="fas fa-mobile-alt me-1"></i>Responsive
+                    </span>
+                </div>
+            </div>
+
+            <!-- Create Link Form -->
+            <div class="card floating-card mb-5">
+                <div class="card-body p-4">
+                    <h3 class="card-title text-gradient mb-4 text-center">
+                        <i class="fas fa-plus-circle me-2"></i>Tạo Link Mới
+                    </h3>
+                    
+                    <form id="createLinkForm">
+                        <div class="mb-3">
+                            <label for="title" class="form-label fw-semibold">
+                                <i class="fas fa-tag me-1"></i>Tiêu đề Link
+                            </label>
+                            <input type="text" class="form-control" id="title" 
+                                   placeholder="Ví dụ: Thông báo khẩn cấp, Cuộc họp quan trọng..."
+                                   required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="url" class="form-label fw-semibold">
+                                <i class="fas fa-external-link-alt me-1"></i>URL Gốc
+                            </label>
+                            <input type="url" class="form-control" id="url" 
+                                   placeholder="https://example.com/your-destination"
+                                   required>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Đây là địa chỉ mà người dùng sẽ được chuyển hướng đến sau khi chia sẻ vị trí
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">
+                                <i class="fas fa-comment me-1"></i>Mô tả
+                            </label>
+                            <textarea class="form-control" id="description" rows="3" 
+                                      placeholder="Mô tả ngắn gọn về mục đích của link này..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-magic me-2"></i>Tạo Link Rút Gọn
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Result Card (Hidden initially) -->
+            <div class="card d-none" id="resultCard">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-success mb-3">
+                        <i class="fas fa-check-circle me-2"></i>Link đã được tạo thành công!
+                    </h4>
+                    
+                    <div class="alert alert-success">
+                        <strong>Link rút gọn:</strong><br>
+                        <code id="shortUrl" class="fs-5"></code>
+                        <button class="btn btn-outline-success btn-sm ms-2" onclick="copyToClipboard()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Section -->
+            <div class="row mt-5">
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-map-marked-alt text-primary fs-1 mb-3"></i>
+                            <h5 class="card-title">Thu thập Vị trí</h5>
+                            <p class="card-text">
+                                Tự động thu thập tọa độ GPS chính xác khi người dùng click vào link
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-analytics text-success fs-1 mb-3"></i>
+                            <h5 class="card-title">Phân tích Chi tiết</h5>
+                            <p class="card-text">
+                                Xem thống kê clicks, thời gian truy cập và bản đồ vị trí trực quan
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body">
+                            <i class="fas fa-share-alt text-warning fs-1 mb-3"></i>
+                            <h5 class="card-title">Chia sẻ Dễ dàng</h5>
+                            <p class="card-text">
+                                Link ngắn gọn, dễ nhớ và có thể chia sẻ qua mọi phương tiện
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#createLinkForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            title: $('#title').val(),
+            url: $('#url').val(),
+            description: $('#description').val()
+        };
+        
+        $.ajax({
+            url: '/create',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(formData),
+            success: function(response) {
+                if (response.success) {
+                    $('#createLinkForm').closest('.card').addClass('d-none');
+                    $('#resultCard').removeClass('d-none');
+                    $('#shortUrl').text(response.link.short_url);
+                }
+            },
+            error: function(xhr) {
+                alert('Có lỗi xảy ra');
+            }
+        });
+    });
+});
+
+function copyToClipboard() {
+    const url = $('#shortUrl').text();
+    navigator.clipboard.writeText(url);
+}
+</script>
+{% endblock %} 

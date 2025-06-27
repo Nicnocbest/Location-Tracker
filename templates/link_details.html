@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}{{ link.title }} - Chi tiết Link{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-white">
+                    <i class="fas fa-info-circle me-2"></i>Chi tiết Link
+                </h2>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Quay lại Dashboard
+                </a>
+            </div>
+
+            <!-- Link Info -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">{{ link.title }}</h4>
+                    {% if link.description %}
+                    <p class="card-text">{{ link.description }}</p>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>URL gốc:</strong><br>
+                            <a href="{{ link.original_url }}" target="_blank" class="text-break">{{ link.original_url }}</a></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Link rút gọn:</strong><br>
+                            <code>{{ url_for('redirect_link', short_code=link.short_code, _external=True) }}</code>
+                            <button class="btn btn-sm btn-outline-primary ms-2" 
+                                    onclick="copyLink('{{ url_for('redirect_link', short_code=link.short_code, _external=True) }}')">
+                                <i class="fas fa-copy"></i>
+                            </button></p>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3>{{ link.clicks }}</h3>
+                                <p>Lượt click</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3>{{ locations|length }}</h3>
+                                <p>Vị trí thu thập</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3>{{ link.created_at.strftime('%d/%m') }}</h3>
+                                <p>Ngày tạo</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stats-card">
+                                <h3>{{ link.creator_ip or 'N/A' }}</h3>
+                                <p>IP tạo</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if locations %}
+            <!-- Map -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-map me-2"></i>Bản đồ vị trí
+                    </h5>
+                    <div id="map" style="height: 400px; border-radius: 10px;"></div>
+                </div>
+            </div>
+
+            <!-- Locations Table -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-list me-2"></i>Danh sách vị trí
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Thời gian</th>
+                                    <th>Tọa độ</th>
+                                    <th>Độ chính xác</th>
+                                    <th>IP Address</th>
+                                    <th>Thông tin thêm</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for location in locations %}
+                                <tr>
+                                    <td>{{ location.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                                    <td>
+                                        {% if location.latitude and location.longitude %}
+                                        <a href="https://www.google.com/maps?q={{ location.latitude }},{{ location.longitude }}" 
+                                           target="_blank">
+                                            {{ "%.6f"|format(location.latitude) }}, {{ "%.6f"|format(location.longitude) }}
+                                        </a>
+                                        {% else %}
+                                        <span class="text-muted">Không có</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if location.accuracy %}
+                                        {{ "%.0f"|format(location.accuracy) }}m
+                                        {% else %}
+                                        <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ location.ip_address or 'N/A' }}</td>
+                                    <td>
+                                        {% if location.city %}{{ location.city }}{% endif %}
+                                        {% if location.country %}, {{ location.country }}{% endif %}
+                                        {% if not location.city and not location.country %}N/A{% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <i class="fas fa-map-marker-alt fs-1 text-muted mb-4"></i>
+                    <h4>Chưa có dữ liệu vị trí</h4>
+                    <p class="text-muted">Khi có người click vào link, vị trí sẽ hiển thị ở đây</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if locations and google_maps_api_key %}
+<script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
+</script>
+
+<script>
+function initMap() {
+    // Tạo bản đồ
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 10,
+        center: { lat: 10.8231, lng: 106.6297 }, // Default to Ho Chi Minh City
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    const locations = [
+        {% for location in locations %}
+        {% if location.latitude and location.longitude %}
+        {
+            lat: {{ location.latitude }},
+            lng: {{ location.longitude }},
+            timestamp: '{{ location.timestamp.strftime("%d/%m/%Y %H:%M:%S") }}',
+            accuracy: {{ location.accuracy or 0 }},
+            ip: '{{ location.ip_address or "N/A" }}'
+        },
+        {% endif %}
+        {% endfor %}
+    ];
+
+    if (locations.length > 0) {
+        // Tạo bounds để fit all markers
+        const bounds = new google.maps.LatLngBounds();
+        
+        locations.forEach(function(location, index) {
+            const marker = new google.maps.Marker({
+                position: { lat: location.lat, lng: location.lng },
+                map: map,
+                title: 'Vị trí ' + (index + 1),
+                icon: {
+                    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
+                }
+            });
+
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
+                    <div>
+                        <h6>Vị trí ${index + 1}</h6>
+                        <p><strong>Thời gian:</strong> ${location.timestamp}</p>
+                        <p><strong>Tọa độ:</strong> ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</p>
+                        <p><strong>Độ chính xác:</strong> ${location.accuracy}m</p>
+                        <p><strong>IP:</strong> ${location.ip}</p>
+                    </div>
+                `
+            });
+
+            marker.addListener('click', function() {
+                infoWindow.open(map, marker);
+            });
+
+            bounds.extend(marker.getPosition());
+        });
+
+        if (locations.length === 1) {
+            map.setCenter(bounds.getCenter());
+            map.setZoom(15);
+        } else {
+            map.fitBounds(bounds);
+        }
+    }
+}
+
+function copyLink(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        const btn = event.target.closest('button');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-success');
+        
+        setTimeout(function() {
+            btn.innerHTML = originalHtml;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    });
+}
+</script>
+{% endif %}
+{% endblock %} 
