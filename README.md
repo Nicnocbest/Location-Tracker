@@ -1,49 +1,49 @@
-# Location Tracker - Link Rút Gọn với Thu Thập Vị Trí
+# Location Tracker - Kurzlink mit Standorterfassung
 
-Ứng dụng web cho phép tạo link rút gọn và thu thập vị trí GPS của người dùng khi họ click vào link.
+Webanwendung zum Erstellen von Kurzlinks und Erfassen von GPS-Standorten der Benutzer, wenn sie auf den Link klicken.
 
-## 🌟 Tính năng
+## 🌟 Funktionen
 
-- ✅ Tạo link rút gọn dễ nhớ
-- 📍 Thu thập vị trí GPS chính xác
-- 🗺️ Hiển thị vị trí trên Google Maps  
-- 📊 Dashboard quản lý link và thống kê
-- 📱 Responsive design, tương thích mobile
-- 🔒 Bảo mật dữ liệu người dùng
+- ✅ Einfache Kurzlink-Erstellung
+- 📍 Präzise GPS-Standorterfassung
+- 🗺️ Standortanzeige auf Google Maps
+- 📊 Dashboard zur Link-Verwaltung und Statistik
+- 📱 Responsive Design, mobil kompatibel
+- 🔒 Datensicherheit
 
-## 🚀 Cài đặt và Chạy Local
+## 🚀 Installation und lokale Ausführung
 
-### Yêu cầu
+### Voraussetzungen
 - Python 3.8+
 - Google Maps API Key
 
-### Cài đặt
+### Installation
 
-1. Clone repository:
+1. Repository klonen:
 ```bash
 git clone <your-repo-url>
 cd location-tracker
 ```
 
-2. Tạo virtual environment:
+2. Virtuelle Umgebung erstellen:
 ```bash
 python -m venv venv
 venv\Scripts\activate  # Windows
 # source venv/bin/activate  # Linux/Mac
 ```
 
-3. Cài đặt dependencies:
+3. Abhängigkeiten installieren:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Tạo file .env từ env_example.txt:
+4. .env-Datei aus env_example.txt erstellen:
 ```bash
 copy env_example.txt .env  # Windows
 # cp env_example.txt .env  # Linux/Mac
 ```
 
-5. Chỉnh sửa file .env:
+5. .env-Datei bearbeiten:
 ```env
 GOOGLE_MAPS_API_KEY=your_actual_api_key_here
 SECRET_KEY=your-secret-key-here
@@ -51,115 +51,115 @@ DATABASE_URL=sqlite:///location_tracker.db
 PORT=5000
 ```
 
-6. Chạy ứng dụng:
+6. Anwendung starten:
 ```bash
 python app.py
 ```
 
-Truy cập: http://localhost:5000
+Aufruf: http://localhost:5000
 
-## 🌐 Deploy lên Railway
+## 🌐 Deployment auf Railway
 
-### Bước 1: Chuẩn bị
-1. Tạo tài khoản tại [railway.app](https://railway.app)
-2. Cài đặt Railway CLI hoặc dùng GitHub integration
+### Schritt 1: Vorbereitung
+1. Konto bei [railway.app](https://railway.app) erstellen
+2. Railway CLI installieren oder GitHub-Integration nutzen
 
-### Bước 2: Deploy
-1. Push code lên GitHub repository
-2. Kết nối Railway với GitHub repo
-3. Tạo project mới trên Railway
-4. Thêm environment variables:
-   - `GOOGLE_MAPS_API_KEY`: API key của Google Maps
-   - `SECRET_KEY`: Chuỗi bí mật cho Flask
-   - `DATABASE_URL`: Railway sẽ tự động tạo PostgreSQL
+### Schritt 2: Deploy
+1. Code auf GitHub Repository pushen
+2. Railway mit GitHub-Repo verbinden
+3. Neues Projekt auf Railway erstellen
+4. Umgebungsvariablen hinzufügen:
+   - `GOOGLE_MAPS_API_KEY`: Google Maps API-Schlüssel
+   - `SECRET_KEY`: Geheimer Schlüssel für Flask
+   - `DATABASE_URL`: Railway erstellt automatisch PostgreSQL
 
-### Bước 3: Lấy Google Maps API Key
-1. Truy cập [Google Cloud Console](https://console.cloud.google.com/)
-2. Tạo project mới hoặc chọn project hiện có
-3. Bật Google Maps JavaScript API
-4. Tạo API Key và thêm domain restrictions
-5. Copy API Key vào Railway environment variables
+### Schritt 3: Google Maps API-Schlüssel besorgen
+1. [Google Cloud Console](https://console.cloud.google.com/) aufrufen
+2. Neues Projekt erstellen oder vorhandenes auswählen
+3. Google Maps JavaScript API aktivieren
+4. API-Schlüssel erstellen und Domain-Einschränkungen hinzufügen
+5. API-Schlüssel in Railway-Umgebungsvariablen kopieren
 
-## 📖 Cách sử dụng
+## 📖 Verwendung
 
-### 1. Tạo link rút gọn
-- Truy cập trang chủ
-- Nhập tiêu đề, URL gốc và mô tả
-- Click "Tạo Link Rút Gọn"
-- Copy link được tạo
+### 1. Kurzlink erstellen
+- Startseite aufrufen
+- Titel, Ziel-URL und Beschreibung eingeben
+- Auf "Kurzlink erstellen" klicken
+- Erstellten Link kopieren
 
-### 2. Chia sẻ link
-- Gửi link rút gọn cho người khác qua:
-  - Tin nhắn SMS
-  - Email
-  - Social media
-  - QR code
+### 2. Link teilen
+- Kurzlink an andere senden über:
+  - SMS
+  - E-Mail
+  - Social Media
+  - QR-Code
 
-### 3. Theo dõi vị trí
-- Khi người dùng click vào link:
-  - Trình duyệt sẽ yêu cầu quyền truy cập vị trí
-  - Ứng dụng thu thập tọa độ GPS
-  - Người dùng được chuyển hướng đến URL gốc
-- Xem thống kê tại Dashboard
+### 3. Standort verfolgen
+- Wenn jemand auf den Link klickt:
+  - Der Browser fragt nach Standortberechtigung
+  - Die App erfasst die GPS-Koordinaten
+  - Der Benutzer wird zur Ziel-URL weitergeleitet
+- Statistiken im Dashboard ansehen
 
-### 4. Xem báo cáo
-- Truy cập Dashboard để xem:
-  - Danh sách tất cả link đã tạo
-  - Số lượt click cho mỗi link
-  - Chi tiết vị trí trên bản đồ
-  - Thời gian và độ chính xác GPS
+### 4. Berichte ansehen
+- Dashboard aufrufen für:
+  - Liste aller erstellten Links
+  - Klick-Anzahl pro Link
+  - Standortdetails auf der Karte
+  - Zeit und GPS-Genauigkeit
 
-## 🔧 API Endpoints
+## 🔧 API-Endpunkte
 
-- `GET /` - Trang chủ
-- `GET /dashboard` - Dashboard quản lý
-- `POST /create` - Tạo link mới
-- `GET /l/<short_code>` - Chuyển hướng và thu thập vị trí
-- `POST /api/location` - Lưu dữ liệu vị trí
-- `GET /link/<id>` - Chi tiết link và bản đồ
+- `GET /` - Startseite
+- `GET /dashboard` - Dashboard
+- `POST /create` - Neuen Link erstellen
+- `GET /l/<short_code>` - Weiterleitung und Standorterfassung
+- `POST /api/location` - Standortdaten speichern
+- `GET /link/<id>` - Link-Details und Karte
 
-## ⚠️ Lưu ý quan trọng
+## ⚠️ Wichtige Hinweise
 
-### Pháp lý
-- Chỉ sử dụng cho mục đích hợp pháp
-- Cần thông báo rõ ràng cho người dùng về việc thu thập vị trí
-- Tuân thủ GDPR và các quy định bảo vệ dữ liệu cá nhân
+### Rechtlich
+- Nur für legale Zwecke verwenden
+- Benutzer klar über Standorterfassung informieren
+- GDPR und Datenschutzbestimmungen einhalten
 
-### Bảo mật
-- Không lưu trữ thông tin nhạy cảm trong database
-- Sử dụng HTTPS trong production
-- Hạn chế quyền truy cập database
+### Sicherheit
+- Keine sensiblen Daten in der Datenbank speichern
+- HTTPS in der Produktion verwenden
+- Datenbankzugriff einschränken
 
-### Sử dụng đạo đức
-- Chỉ thu thập vị trí khi người dùng đồng ý
-- Có chính sách bảo mật rõ ràng
-- Cung cấp tùy chọn opt-out
+### Ethische Nutzung
+- Standort nur mit Zustimmung des Benutzers erfassen
+- Klare Datenschutzrichtlinien haben
+- Opt-Out-Möglichkeit anbieten
 
-## 🛠️ Công nghệ sử dụng
+## 🛠️ Verwendete Technologien
 
 - **Backend**: Flask, SQLAlchemy
 - **Frontend**: Bootstrap 5, jQuery, HTML5 Geolocation
-- **Database**: SQLite (local), PostgreSQL (production)
-- **Maps**: Google Maps JavaScript API
+- **Datenbank**: SQLite (lokal), PostgreSQL (Produktion)
+- **Karten**: Google Maps JavaScript API
 - **Deployment**: Railway
 
-## 📄 License
+## 📄 Lizenz
 
-MIT License - Xem file LICENSE để biết thêm chi tiết.
+MIT License - Siehe LICENSE-Datei für Details.
 
-## 🤝 Đóng góp
+## 🤝 Beitragen
 
-Mọi đóng góp đều được chào đón! Hãy:
-1. Fork project
-2. Tạo feature branch
-3. Commit changes
-4. Push to branch  
-5. Tạo Pull Request
+Beiträge sind willkommen! So geht's:
+1. Fork das Projekt
+2. Feature-Branch erstellen
+3. Changes commiten
+4. Branch pushen
+5. Pull Request erstellen
 
-## 📞 Hỗ trợ
+## 📞 Support
 
-Nếu gặp vấn đề, hãy tạo issue trên GitHub hoặc liên hệ qua email.
+Bei Problemen ein Issue auf GitHub erstellen oder per E-Mail kontaktieren.
 
 ---
 
-⭐ **Nếu project hữu ích, hãy cho một star nhé!** ⭐ 
+⭐ **Wenn dir das Projekt gefällt, gib einen Stern!** ⭐

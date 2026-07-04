@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,7 +113,7 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('index') }}">
-                            <i class="fas fa-home me-1"></i>Trang chủ
+                            <i class="fas fa-home me-1"></i>Startseite
                         </a>
                     </li>
                     <li class="nav-item">
@@ -136,7 +136,7 @@
         <div class="container">
             <p class="text-white mb-0">
                 <i class="fas fa-code me-1"></i>
-                Phát triển bởi Location Tracker Team &copy; {{ moment().format('YYYY') if moment else '2024' }}
+                Entwickelt von Location Tracker Team &copy; 2024
             </p>
         </div>
     </footer>
@@ -148,4 +148,4 @@
     
     {% block extra_js %}{% endblock %}
 </body>
-</html> 
+</html>
