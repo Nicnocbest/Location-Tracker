@@ -26,12 +26,17 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-# Tabellen beim Start erstellen
-with app.app_context():
-    try:
-        db.create_all()
-    except Exception:
-        pass
+# Tabellen beim ersten Request erstellen
+_db_initialized = False
+@app.before_request
+def init_db():
+    global _db_initialized
+    if not _db_initialized:
+        try:
+            db.create_all()
+        except Exception:
+            pass
+        _db_initialized = True
 
 # Hashids initialisieren für Kurz-URLs
 hashids = Hashids(min_length=6, salt="location-tracker-salt")
