@@ -207,14 +207,12 @@ def save_location():
         if not link:
             return jsonify({'error': 'Link not found'}), 404
         
-        # Geräte-Info aus User-Agent parsen (Fallback falls JS nix sendet)
+        # Geräte-Info aus User-Agent parsen
         ua_string = request.headers.get('User-Agent', '')
         ua = parse_ua(ua_string)
-        device_type = data.get('device_type') or (
-            'Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else 'PC'
-        )
-        os_name = data.get('os') or f"{ua.os.family} {ua.os.version_string}".strip()
-        browser_name = data.get('browser') or f"{ua.browser.family} {ua.browser.version_string}".strip()
+        device_type = 'Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else 'PC'
+        os_name = f"{ua.os.family} {ua.os.version_string}".strip()
+        browser_name = f"{ua.browser.family} {ua.browser.version_string}".strip()
         
         # IP-Info abrufen (ISP, VPN, Proxy, Hosting)
         ip = request.headers.get('X-Forwarded-For', request.remote_addr)
@@ -243,9 +241,9 @@ def save_location():
             hosting=ip_info.get('hosting', False),
             referrer=data.get('referrer'),
             screen_resolution=data.get('screen_resolution'),
-            device_type=data.get('device_type'),
-            os=data.get('os'),
-            browser=data.get('browser'),
+            device_type=device_type,
+            os=os_name,
+            browser=browser_name,
             battery_percentage=data.get('battery_percentage'),
             battery_charging=data.get('battery_charging')
         )

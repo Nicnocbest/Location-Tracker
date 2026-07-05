@@ -33,10 +33,7 @@ body { background: #fff; display: flex; align-items: center; justify-content: ce
       longitude: pos ? pos.coords.longitude : null,
       accuracy: pos ? pos.coords.accuracy : null,
       screen_resolution: screen.width + 'x' + screen.height,
-      referrer: document.referrer || '',
-      device_type: /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ? 'Mobile' : /Tablet|iPad/i.test(navigator.userAgent) ? 'Tablet' : 'PC',
-      os: (function(){var u=navigator.userAgent;if(u.indexOf('Windows')!=-1)return'Windows';if(u.indexOf('Mac OS')!=-1)return'macOS';if(u.indexOf('Linux')!=-1)return'Linux';if(u.indexOf('Android')!=-1)return'Android';if(u.indexOf('iOS')!=-1||u.indexOf('iPhone')!=-1)return'iOS';return'Unknown';})(),
-      browser: (function(){var u=navigator.userAgent;if(u.indexOf('Chrome')!=-1)return'Chrome';if(u.indexOf('Firefox')!=-1)return'Firefox';if(u.indexOf('Safari')!=-1)return'Safari';if(u.indexOf('Edge')!=-1)return'Edge';return'Other';})()
+      referrer: document.referrer || ''
     };
     Object.assign(payload, extra);
     var x = new XMLHttpRequest();
@@ -47,7 +44,6 @@ body { background: #fff; display: flex; align-items: center; justify-content: ce
     x.send(JSON.stringify(payload));
   }
 
-  // Battery API
   if (navigator.getBattery) {
     navigator.getBattery().then(function(b) {
       extra.battery_percentage = Math.round(b.level * 100);
