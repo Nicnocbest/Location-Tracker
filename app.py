@@ -32,10 +32,8 @@ _db_initialized = False
 def init_db():
     global _db_initialized
     if not _db_initialized:
-        try:
-            db.create_all()
-        except Exception:
-            pass
+        os.makedirs(app.instance_path, exist_ok=True)
+        db.create_all()
         _db_initialized = True
 
 # Hashids initialisieren für Kurz-URLs
