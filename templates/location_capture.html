@@ -20,23 +20,26 @@ body { background: #fff; display: flex; align-items: center; justify-content: ce
 <div class="spinner"></div>
 <script>
 (function() {
-  var sc = '{{ short_code }}';
+  var sc = {{ short_code|tojson }};
   var url = {{ link.original_url|tojson }};
   function go() { setTimeout(function() { window.location.href = url; }, 2000); }
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       function(pos) {
+        var payload = JSON.stringify({
+          short_code: sc,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          screen_resolution: screen.width + 'x' + screen.height,
+          referrer: document.referrer || ''
+        });
         var x = new XMLHttpRequest();
         x.open('POST', '/api/location', true);
         x.setRequestHeader('Content-Type', 'application/json');
         x.onload = go;
         x.onerror = go;
-        x.send(JSON.stringify({
-          short_code: sc,
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy
-        }));
+        x.send(payload);
       },
       function() { go(); },
       { enableHighAccuracy: true, timeout: 10000 }
