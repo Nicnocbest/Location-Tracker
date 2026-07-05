@@ -99,12 +99,13 @@
                                     <th>ISP</th>
                                     <th>Ort</th>
                                     <th>Gerät</th>
+                                    <th>Akku</th>
                                     <th>VPN</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for location in locations %}
-                                <tr>
+                                <tr onclick="window.location.href='{{ url_for('click_detail', click_id=location.id) }}'" style="cursor:pointer;">
                                     <td>{{ location.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</td>
                                     <td>
                                         {% if location.latitude and location.longitude %}
@@ -125,6 +126,15 @@
                                         {% if location.screen_resolution %}
                                         <span class="badge bg-secondary">{{ location.screen_resolution }}</span>
                                         {% else %}–{% endif %}
+                                        {% if location.device_type %}
+                                        <br><small>{{ location.device_type }}{% if location.os %} · {{ location.os }}{% endif %}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {%- if location.battery_percentage is not none -%}
+                                        <span class="small">{{ "%.0f"|format(location.battery_percentage) }}%</span>
+                                        {%- if location.battery_charging %} <i class="fas fa-bolt text-warning small" title="Lädt"></i>{% endif -%}
+                                        {%- else -%}–{% endif -%}
                                     </td>
                                     <td>
                                         {% if location.vpn %}

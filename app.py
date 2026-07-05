@@ -9,6 +9,7 @@ import json
 from dotenv import load_dotenv
 from urllib.request import urlopen
 from urllib.parse import urlencode, quote
+from user_agents import parse as parse_ua
 
 # Load environment variables
 load_dotenv()
@@ -85,6 +86,11 @@ class LocationData(db.Model):
     hosting = db.Column(db.Boolean, default=False)
     referrer = db.Column(db.String(1000))
     screen_resolution = db.Column(db.String(50))
+    device_type = db.Column(db.String(50))
+    os = db.Column(db.String(100))
+    browser = db.Column(db.String(100))
+    battery_percentage = db.Column(db.Float)
+    battery_charging = db.Column(db.Boolean)
     
     # Relationship
     link = db.relationship('TrackedLink', backref=db.backref('locations', lazy=True))
@@ -106,7 +112,12 @@ class LocationData(db.Model):
             'proxy': self.proxy,
             'hosting': self.hosting,
             'referrer': self.referrer,
-            'screen_resolution': self.screen_resolution
+            'screen_resolution': self.screen_resolution,
+            'device_type': self.device_type,
+            'os': self.os,
+            'browser': self.browser,
+            'battery_percentage': self.battery_percentage,
+            'battery_charging': self.battery_charging
         }
 
 # Routes
@@ -196,6 +207,15 @@ def save_location():
         if not link:
             return jsonify({'error': 'Link not found'}), 404
         
+        # Geräte-Info aus User-Agent parsen (Fallback falls JS nix sendet)
+        ua_string = request.headers.get('User-Agent', '')
+        ua = parse_ua(ua_string)
+        device_type = data.get('device_type') or (
+            'Mobile' if ua.is_mobile else 'Tablet' if ua.is_tablet else 'PC'
+        )
+        os_name = data.get('os') or f"{ua.os.family} {ua.os.version_string}".strip()
+        browser_name = data.get('browser') or f"{ua.browser.family} {ua.browser.version_string}".strip()
+        
         # IP-Info abrufen (ISP, VPN, Proxy, Hosting)
         ip = request.headers.get('X-Forwarded-For', request.remote_addr)
         if ip and ',' in ip:
@@ -222,7 +242,12 @@ def save_location():
             proxy=ip_info.get('proxy', False),
             hosting=ip_info.get('hosting', False),
             referrer=data.get('referrer'),
-            screen_resolution=data.get('screen_resolution')
+            screen_resolution=data.get('screen_resolution'),
+            device_type=data.get('device_type'),
+            os=data.get('os'),
+            browser=data.get('browser'),
+            battery_percentage=data.get('battery_percentage'),
+            battery_charging=data.get('battery_charging')
         )
         
         db.session.add(location_data)
@@ -257,6 +282,13 @@ def view_link_details(link_id):
 def get_links():
     links = TrackedLink.query.order_by(TrackedLink.created_at.desc()).all()
     return jsonify([link.to_dict() for link in links])
+
+@app.route('/click/<int:click_id>')
+def click_detail(click_id):
+    loc = LocationData.query.get_or_404(click_id)
+    link = loc.link
+    short_url = url_for('redirect_link', short_code=link.short_code, _external=True)
+    return render_template('click_detail.html', loc=loc, link=link, short_url=short_url)
 
 @app.errorhandler(404)
 def page_not_found(e):

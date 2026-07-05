@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Klick #{{ loc.id }} - {{ link.title }}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+.card { border: none; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,.08); margin-bottom: 16px; }
+.card-header { background: none; border-bottom: 1px solid #eee; font-weight: 600; padding: 16px 20px; }
+.card-body { padding: 20px; }
+.info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+.info-row:last-child { border-bottom: none; }
+.info-label { color: #888; font-size: .85rem; }
+.info-value { font-weight: 500; text-align: right; }
+.badge-vpn { background: #dc3545; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: .75rem; }
+.badge-safe { background: #28a745; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: .75rem; }
+.battery { display: inline-flex; align-items: center; gap: 6px; }
+.battery-bar { width: 40px; height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; display: inline-block; }
+.battery-fill { height: 100%; border-radius: 4px; transition: width .3s; }
+</style>
+</head>
+<body>
+<div class="container py-4" style="max-width: 600px;">
+    <a href="{{ url_for('view_link_details', link_id=link.id) }}" class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="fas fa-arrow-left me-1"></i>Zurück
+    </a>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>Klick #{{ loc.id }}
+            <small class="text-muted ms-2">{{ loc.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</small>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Link</span>
+                <span class="info-value">{{ link.title }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Ziel-URL</span>
+                <span class="info-value"><small><a href="{{ link.original_url }}" target="_blank" class="text-break">{{ link.original_url[:60] }}{% if link.original_url|length > 60 %}...{% endif %}</a></small></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Zeitpunkt</span>
+                <span class="info-value">{{ loc.timestamp.strftime('%d.%m.%Y %H:%M:%S') }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-globe me-2"></i>Standort</div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Koordinaten</span>
+                <span class="info-value">
+                    {% if loc.latitude and loc.longitude %}
+                    <a href="https://www.google.com/maps?q={{ loc.latitude }},{{ loc.longitude }}" target="_blank">
+                        {{ "%.6f"|format(loc.latitude) }}, {{ "%.6f"|format(loc.longitude) }}
+                    </a>
+                    {% else %}Nicht verfügbar{% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Genauigkeit</span>
+                <span class="info-value">{% if loc.accuracy %}{{ "%.0f"|format(loc.accuracy) }}m{% else %}–{% endif %}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Stadt</span>
+                <span class="info-value">{{ loc.city or '–' }}{% if loc.country %}, {{ loc.country }}{% endif %}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-laptop me-2"></i>Gerät</div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Typ</span>
+                <span class="info-value">
+                    {% if loc.device_type == 'Mobile' %}<i class="fas fa-mobile-alt me-1"></i>
+                    {% elif loc.device_type == 'Tablet' %}<i class="fas fa-tablet-alt me-1"></i>
+                    {% else %}<i class="fas fa-desktop me-1"></i>{% endif %}
+                    {{ loc.device_type or 'Unbekannt' }}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Betriebssystem</span>
+                <span class="info-value">{{ loc.os or '–' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Browser</span>
+                <span class="info-value">{{ loc.browser or '–' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Bildschirm</span>
+                <span class="info-value">{{ loc.screen_resolution or '–' }}</span>
+            </div>
+            {% if loc.battery_percentage is not none %}
+            <div class="info-row">
+                <span class="info-label">Akku</span>
+                <span class="info-value">
+                    <span class="battery">
+                        <span class="battery-bar">
+                            <span class="battery-fill" style="width:{{ loc.battery_percentage }}%;background:{% if loc.battery_percentage > 60 %}#28a745{% elif loc.battery_percentage > 20 %}#ffc107{% else %}#dc3545{% endif %};"></span>
+                        </span>
+                        {{ "%.0f"|format(loc.battery_percentage) }}%
+                        {% if loc.battery_charging %}<i class="fas fa-bolt text-warning" title="Lädt"></i>{% endif %}
+                    </span>
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header"><i class="fas fa-network-wired me-2"></i>Netzwerk</div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">IP-Adresse</span>
+                <span class="info-value"><code>{{ loc.ip_address or '–' }}</code></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">ISP</span>
+                <span class="info-value">{{ loc.isp or '–' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">VPN/Proxy</span>
+                <span class="info-value">
+                    {% if loc.vpn %}<span class="badge-vpn"><i class="fas fa-shield-alt me-1"></i>VPN erkannt</span>
+                    {% else %}<span class="badge-safe">Nein</span>{% endif %}
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Hosting</span>
+                <span class="info-value">{% if loc.hosting %}Ja{% else %}Nein{% endif %}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Referrer</span>
+                <span class="info-value"><small class="text-break">{{ loc.referrer or 'Direkt' }}</small></span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">User-Agent</span>
+                <span class="info-value"><small class="text-muted text-break" style="font-size:.75rem;">{{ loc.user_agent or '–' }}</small></span>
+            </div>
+        </div>
+    </div>
+
+    {% if loc.latitude and loc.longitude %}
+    <div class="card">
+        <div class="card-header"><i class="fas fa-map me-2"></i>Karte</div>
+        <div class="card-body p-0">
+            <iframe width="100%" height="300" frameborder="0" style="border-radius:0 0 16px 16px;"
+                src="https://www.google.com/maps?q={{ loc.latitude }},{{ loc.longitude }}&output=embed">
+            </iframe>
+        </div>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
