@@ -26,7 +26,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 CORS(app)
 
-# Tabellen beim Start erstellen (wichtig für Vercel)
+# Tabellen beim Start erstellen
 with app.app_context():
     try:
         db.create_all()
