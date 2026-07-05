@@ -13,7 +13,13 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///location_tracker.db')
+db_path = os.environ.get('DATABASE_URL')
+if not db_path:
+    if os.environ.get('VERCEL'):
+        db_path = 'sqlite:///tmp/location_tracker.db'
+    else:
+        db_path = 'sqlite:///location_tracker.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Datenbank und CORS initialisieren
