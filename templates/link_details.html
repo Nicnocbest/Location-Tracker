@@ -10,9 +10,14 @@
                 <h2 class="text-white">
                     <i class="fas fa-info-circle me-2"></i>Link Details
                 </h2>
-                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
-                    <i class="fas fa-arrow-left me-2"></i>Dashboard
-                </a>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger" onclick="deleteLink({{ link.id }})">
+                        <i class="fas fa-trash me-1"></i>Löschen
+                    </button>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left me-2"></i>Dashboard
+                    </a>
+                </div>
             </div>
 
             <div class="card mb-4">
@@ -71,8 +76,7 @@
                 </div>
             </div>
 
-            {% if locations %}
-            <!-- Map -->
+            {% if locations and google_maps_api_key and google_maps_api_key != 'YOUR_API_KEY' %}
             <div class="card mb-4">
                 <div class="card-body">
                     <h5>
@@ -165,7 +169,7 @@
 {% endblock %}
 
 {% block extra_js %}
-{% if locations and google_maps_api_key %}
+{% if locations and google_maps_api_key and google_maps_api_key != 'YOUR_API_KEY' %}
 <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
 </script>
@@ -235,6 +239,13 @@ function copyLink(url) {
             btn.classList.add('btn-outline-primary');
         }, 2000);
     });
+}
+
+function deleteLink(id) {
+    if (!confirm('Diesen Link wirklich löschen?')) return;
+    fetch('/api/links/' + id + '/delete', { method: 'POST' })
+        .then(r => r.json())
+        .then(d => { if (d.success) window.location.href = '/dashboard'; });
 }
 </script>
 {% endif %}

@@ -14,11 +14,7 @@ from user_agents import parse as parse_ua
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__, instance_path='/tmp' if os.environ.get('VERCEL') else None)
-
-@app.template_filter('urlencode')
-def urlencode_filter(s):
-    return quote(s, safe='')
+app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 db_path = os.environ.get('DATABASE_URL')
 if not db_path:
@@ -28,6 +24,12 @@ if not db_path:
         db_path = 'sqlite:///location_tracker.db'
 app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+if db_path.startswith('postgres'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+
+@app.template_filter('urlencode')
+def urlencode_filter(s):
+    return quote(s, safe='')
 
 # Datenbank und CORS initialisieren
 db = SQLAlchemy(app)
@@ -39,7 +41,8 @@ _db_initialized = False
 def init_db():
     global _db_initialized
     if not _db_initialized:
-        os.makedirs(app.instance_path, exist_ok=True)
+        if db_path.startswith('sqlite'):
+            os.makedirs(os.path.dirname(db_path.replace('sqlite:///', '') or '.'), exist_ok=True)
         db.create_all()
         _db_initialized = True
 
@@ -275,6 +278,29 @@ def view_link_details(link_id):
                          short_url=short_url,
                          vpn_count=vpn_count,
                          google_maps_api_key=os.environ.get('GOOGLE_MAPS_API_KEY', 'YOUR_API_KEY'))
+
+@app.route('/api/links/<int:link_id>/delete', methods=['POST'])
+def delete_link(link_id):
+    try:
+        link = TrackedLink.query.get_or_404(link_id)
+        LocationData.query.filter_by(link_id=link.id).delete()
+        db.session.delete(link)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/links/delete-all', methods=['POST'])
+def delete_all_links():
+    try:
+        LocationData.query.delete()
+        TrackedLink.query.delete()
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/links')
 def get_links():
