@@ -88,3 +88,5 @@ node_modules/
 
 # Railway
 .railway/ 
+.vercel
+.env*
