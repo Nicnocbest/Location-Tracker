@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, instance_path='/tmp' if os.environ.get('VERCEL') else None)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
 db_path = os.environ.get('DATABASE_URL')
 if not db_path:
