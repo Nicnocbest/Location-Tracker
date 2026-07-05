@@ -76,6 +76,7 @@
                 </div>
             </div>
 
+            {% if locations %}
             {% if locations and google_maps_api_key and google_maps_api_key != 'YOUR_API_KEY' %}
             <div class="card mb-4">
                 <div class="card-body">
@@ -85,8 +86,8 @@
                     <div id="map" style="height: 400px; border-radius: 10px;"></div>
                 </div>
             </div>
+            {% endif %}
 
-            <!-- Locations Table -->
             <div class="card">
                 <div class="card-body">
                     <h5>
